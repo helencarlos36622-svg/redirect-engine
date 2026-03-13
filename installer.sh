@@ -167,23 +167,45 @@ else
 fi
 
 # Setup SSL certificate
-echo -e "${GREEN}[8/8]${NC} Setting up SSL certificate..."
-echo -e "${YELLOW}This will request an SSL certificate from Let's Encrypt${NC}"
-echo -e "${YELLOW}Make sure your domain $DOMAIN points to this server's IP address${NC}"
+echo -e "${GREEN}[8/8]${NC} SSL Configuration..."
 echo ""
-read -p "Continue with SSL setup? (y/n) " -n 1 -r
+echo -e "${YELLOW}Choose your SSL setup:${NC}"
+echo "1) Using Cloudflare (recommended if using Cloudflare proxy)"
+echo "2) Let's Encrypt (for direct server SSL)"
+echo "3) Skip SSL setup"
+echo ""
+read -p "Enter your choice (1-3): " -n 1 -r
 echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos --register-unsafely-without-email --redirect
+echo ""
 
-    # Setup auto-renewal
-    systemctl enable certbot.timer
-    systemctl start certbot.timer
+if [[ $REPLY == "1" ]]; then
+    echo -e "${GREEN}Cloudflare SSL Mode Selected${NC}"
+    echo ""
+    echo -e "${YELLOW}Make sure you have:${NC}"
+    echo "1. Set Cloudflare SSL/TLS mode to 'Full' or 'Full (strict)'"
+    echo "2. Created Origin Certificate in Cloudflare (optional for Full strict)"
+    echo "3. DNS records (@ and *) pointing to this server"
+    echo ""
+    echo -e "${GREEN}Your site will use Cloudflare's SSL certificate${NC}"
+    echo "No additional SSL setup needed on this server"
 
-    echo -e "${GREEN}SSL certificate installed successfully!${NC}"
+elif [[ $REPLY == "2" ]]; then
+    echo -e "${YELLOW}Setting up Let's Encrypt...${NC}"
+    echo -e "${YELLOW}Make sure your domain $DOMAIN points directly to this server${NC}"
+    echo ""
+    read -p "Continue? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos --register-unsafely-without-email --redirect
+        systemctl enable certbot.timer
+        systemctl start certbot.timer
+        echo -e "${GREEN}Let's Encrypt SSL certificate installed!${NC}"
+    else
+        echo -e "${YELLOW}Skipped. Run later: certbot --nginx -d $DOMAIN${NC}"
+    fi
 else
-    echo -e "${YELLOW}Skipping SSL setup. You can run it later with:${NC}"
-    echo "certbot --nginx -d $DOMAIN -d www.$DOMAIN"
+    echo -e "${YELLOW}SSL setup skipped${NC}"
+    echo "Run later with: certbot --nginx -d $DOMAIN -d www.$DOMAIN"
 fi
 
 echo ""
