@@ -84,10 +84,13 @@ echo -e "${GREEN}[3/8]${NC} Setting up application files..."
 if [ -d "$INSTALL_DIR" ]; then
     echo "Directory exists, updating..."
     cd $INSTALL_DIR
+    # Fix Git ownership issue
+    git config --global --add safe.directory $INSTALL_DIR
     git pull -q
 else
     echo "Cloning repository..."
     git clone -q $REPO_URL $INSTALL_DIR
+    cd $INSTALL_DIR
 fi
 
 # Set correct permissions
