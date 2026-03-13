@@ -82,16 +82,13 @@ esac
 # Clone or update repository
 echo -e "${GREEN}[3/8]${NC} Setting up application files..."
 if [ -d "$INSTALL_DIR" ]; then
-    echo "Directory exists, updating..."
-    cd $INSTALL_DIR
-    # Fix Git ownership issue
-    git config --global --add safe.directory $INSTALL_DIR
-    git pull -q
-else
-    echo "Cloning repository..."
-    git clone -q $REPO_URL $INSTALL_DIR
-    cd $INSTALL_DIR
+    echo "Previous installation detected. Removing and reinstalling..."
+    rm -rf $INSTALL_DIR
 fi
+
+echo "Cloning repository..."
+git clone -q $REPO_URL $INSTALL_DIR
+cd $INSTALL_DIR
 
 # Set correct permissions
 chown -R www-data:www-data $INSTALL_DIR
