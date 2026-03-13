@@ -35,14 +35,49 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
+# Detect OS and package manager
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+else
+    echo -e "${RED}Cannot detect OS type${NC}"
+    exit 1
+fi
+
 # Update system
 echo -e "${GREEN}[1/8]${NC} Updating system packages..."
-apt-get update -qq
-apt-get upgrade -y -qq
+case $OS in
+    ubuntu|debian)
+        apt-get update -qq
+        apt-get upgrade -y -qq
+        ;;
+    centos|rhel|rocky|almalinux)
+        yum update -y -q
+        ;;
+    fedora)
+        dnf update -y -q
+        ;;
+    *)
+        echo -e "${RED}Unsupported OS: $OS${NC}"
+        exit 1
+        ;;
+esac
 
 # Install required packages
 echo -e "${GREEN}[2/8]${NC} Installing Nginx, Certbot, and Git..."
-apt-get install -y -qq nginx certbot python3-certbot-nginx git curl
+case $OS in
+    ubuntu|debian)
+        apt-get install -y -qq nginx certbot python3-certbot-nginx git curl
+        ;;
+    centos|rhel|rocky|almalinux)
+        # Enable EPEL for certbot
+        yum install -y -q epel-release
+        yum install -y -q nginx certbot python3-certbot-nginx git curl
+        ;;
+    fedora)
+        dnf install -y -q nginx certbot python3-certbot-nginx git curl
+        ;;
+esac
 
 # Clone or update repository
 echo -e "${GREEN}[3/8]${NC} Setting up application files..."
