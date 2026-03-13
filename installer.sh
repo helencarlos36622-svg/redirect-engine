@@ -79,30 +79,20 @@ case $OS in
         ;;
 esac
 
-# Determine web server user (www-data for Debian/Ubuntu, nginx for RHEL/CentOS/Fedora)
-if [ -f /etc/nginx/nginx.conf ]; then
-    WEB_USER=$(grep -E '^user' /etc/nginx/nginx.conf | awk '{print $2}' | tr -d ';')
-    if [ -z "$WEB_USER" ]; then
-        WEB_USER="www-data"  # fallback
-    fi
-else
-    WEB_USER="www-data"
-fi
-
 # Clone or update repository
 echo -e "${GREEN}[3/8]${NC} Setting up application files..."
 if [ -d "$INSTALL_DIR" ]; then
     echo "Previous installation detected. Removing and reinstalling..."
-    rm -rf "$INSTALL_DIR"
+    rm -rf $INSTALL_DIR
 fi
 
 echo "Cloning repository..."
-git clone -q "$REPO_URL" "$INSTALL_DIR"
-cd "$INSTALL_DIR"
+git clone -q $REPO_URL $INSTALL_DIR
+cd $INSTALL_DIR
 
 # Set correct permissions
-chown -R "$WEB_USER":"$WEB_USER" "$INSTALL_DIR"
-chmod -R 755 "$INSTALL_DIR"
+chown -R www-data:www-data $INSTALL_DIR
+chmod -R 755 $INSTALL_DIR
 
 # Configure Nginx
 echo -e "${GREEN}[4/8]${NC} Configuring Nginx..."
@@ -206,7 +196,7 @@ elif [[ $REPLY == "2" ]]; then
     read -p "Continue? (y/n) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email --redirect
+        certbot --nginx -d $DOMAIN -d www.$DOMAIN --non-interactive --agree-tos --register-unsafely-without-email --redirect
         systemctl enable certbot.timer
         systemctl start certbot.timer
         echo -e "${GREEN}Let's Encrypt SSL certificate installed!${NC}"
